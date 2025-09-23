@@ -35,7 +35,13 @@ export function PricePerDayList() {
       item_id: 5,
       price_old: "",
       price_new: "",
-      item_name: "Power Meteorite Fragment",
+      item_name: "Spell Meteorite Fragment",
+    },
+    {
+      item_id: 6,
+      price_old: "",
+      price_new: "",
+      item_name: "Wisdom Meteorite Fragment",
     },
   ]);
   const [inserting, setInserting] = useState(false);
@@ -51,7 +57,7 @@ export function PricePerDayList() {
       .select(
         "id, item_id, price_old, price_new, created_at, item(item_name,color)"
       )
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: true });
     if (error) setError(error.message);
     else setPrices(data || []);
     // เติม price_old ใน formRows จาก 5 รายการล่าสุด (price_new)
@@ -124,7 +130,13 @@ export function PricePerDayList() {
         item_id: 5,
         price_old: "",
         price_new: "",
-        item_name: "Power Meteorite Fragment",
+        item_name: "Spell Meteorite Fragment",
+      },
+      {
+        item_id: 6,
+        price_old: "",
+        price_new: "",
+        item_name: "Wisdom Meteorite Fragment",
       },
     ]);
     fetchPrices();
@@ -214,7 +226,7 @@ export function PricePerDayList() {
                   </tr>
                 ))
               : prices.map((row, idx) => {
-                  const group = Math.floor(idx / 5);
+                  const group = Math.floor(idx / 6);
                   const bg = group % 2 === 0 ? "bg-white" : "bg-gray-200";
                   return (
                     <tr key={row.id} className={bg}>
