@@ -1,8 +1,6 @@
-import { DeployButton } from "@/components/deploy-button";
 import { EnvVarWarning } from "@/components/env-var-warning";
 import { AuthButton } from "@/components/auth-button";
 import { ThemeSwitcher } from "@/components/theme-switcher";
-import { PricePerDayList } from "@/components/ui/price-per-day-list";
 import { hasEnvVars } from "@/lib/utils";
 import Link from "next/link";
 
