@@ -1,10 +1,7 @@
 import { DeployButton } from "@/components/deploy-button";
 import { EnvVarWarning } from "@/components/env-var-warning";
 import { AuthButton } from "@/components/auth-button";
-import { Hero } from "@/components/hero";
 import { ThemeSwitcher } from "@/components/theme-switcher";
-import { ConnectSupabaseSteps } from "@/components/tutorial/connect-supabase-steps";
-import { SignUpUserSteps } from "@/components/tutorial/sign-up-user-steps";
 import { PricePerDayList } from "@/components/ui/price-per-day-list";
 import { hasEnvVars } from "@/lib/utils";
 import Link from "next/link";
@@ -19,12 +16,10 @@ export default function Home() {
               <Link href={"/"}>Next.js Supabase Starter</Link>
               <div className="flex items-center gap-2">
                 <DeployButton />
-                
               </div>
             </div>
             {!hasEnvVars ? <EnvVarWarning /> : <AuthButton />}
           </div>
-          
         </nav>
         <div className="flex-1 flex flex-col gap-20 max-w-5xl p-5">
           {/* แสดง PricePerDayList ที่บรรทัด 29 */}
