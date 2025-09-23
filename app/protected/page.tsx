@@ -12,6 +12,7 @@ export default async function ProtectedPage() {
     redirect("/auth/login");
   }
 
+  console.log('data', data)
   return (
     <div className="flex-1 w-full flex flex-col gap-12">
       <div className="w-full">
@@ -29,7 +30,7 @@ export default async function ProtectedPage() {
       </div>
       <div>
         <h2 className="font-bold text-2xl mb-4">Next steps</h2>
-        <FetchDataSteps />
+        {/* <FetchDataSteps /> */}
       </div>
     </div>
   );
