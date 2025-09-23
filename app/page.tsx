@@ -23,6 +23,9 @@ export default function Home() {
           {/* แสดง PricePerDayList ที่บรรทัด 29 */}
           หน้าแรก
         </div>
+        <div className="flex-1 flex flex-col gap-20 max-w-5xl p-5">
+          <Link href={"/protected"}>ไป Dashboard</Link>
+        </div>
 
         <footer className="w-full flex items-center justify-center border-t mx-auto text-center text-xs gap-8 py-16">
           <p>
