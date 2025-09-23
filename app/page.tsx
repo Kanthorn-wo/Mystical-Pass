@@ -15,7 +15,7 @@ export default function Home() {
             <div className="flex gap-5 items-center font-semibold">
               <Link href={"/"}>Next.js Supabase Starter</Link>
               <div className="flex items-center gap-2">
-                <DeployButton />
+                {/* <DeployButton /> */}
               </div>
             </div>
             {!hasEnvVars ? <EnvVarWarning /> : <AuthButton />}
@@ -23,7 +23,7 @@ export default function Home() {
         </nav>
         <div className="flex-1 flex flex-col gap-20 max-w-5xl p-5">
           {/* แสดง PricePerDayList ที่บรรทัด 29 */}
-          <PricePerDayList />
+          หน้าแรก
         </div>
 
         <footer className="w-full flex items-center justify-center border-t mx-auto text-center text-xs gap-8 py-16">
