@@ -1,11 +1,19 @@
 "use client";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { Input } from "./input";
+import { Label } from "./label";
 
 export function PricePerDayList() {
-  // ...existing code...
   const [dataPrice, setDataPrice] = useState<any[]>([]);
-
+  const [form, setForm] = useState({
+    power: "",
+    stamina: "",
+    concentration: "",
+    creative: "",
+    spell: "",
+    wisdom: "",
+  });
   useEffect(() => {
     fetchPrices();
   }, []);
@@ -36,10 +44,76 @@ export function PricePerDayList() {
     const minute = String(date.getMinutes()).padStart(2, "0");
     return `${day}/${month}/${year} ${hour}:${minute} น.`;
   }
+
+  const inp_label = [
+    {
+      name: "power",
+    },
+    {
+      name: "stamina",
+    },
+    {
+      name: "concentration",
+    },
+    {
+      name: "creative",
+    },
+    {
+      name: "spell",
+    },
+    {
+      name: "wisdom",
+    },
+  ];
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log("name:", "value", e.target.name, e.target.value);
+    setForm({ ...form, [e.target.id]: e.target.value });
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("submit", form);
+    setForm({
+      power: "",
+      stamina: "",
+      concentration: "",
+      creative: "",
+      spell: "",
+      wisdom: "",
+    });
+  };
+
+  const isFormEmpty = Object.values(form).every((v) => v === "");
+
   return (
     <>
       <div className="container-list">
-        <h3 className="list-title">List</h3>
+        <form className="space-y-4" onSubmit={handleSubmit}>
+          {inp_label.map((item) => (
+            <div className="flex items-center gap-2" key={item.name}>
+              <Label htmlFor={item.name} className="min-w-[250px]">
+                {item.name.charAt(0).toUpperCase() + item.name.slice(1)}{" "}
+                Meteorite Fragment
+              </Label>
+              <Input
+                id={item.name}
+                type="number"
+                placeholder="กรอกราคาใหม่"
+                value={form[item.name]}
+                onChange={handleChange}
+              />
+            </div>
+          ))}
+          <button
+            className="bg-blue-500 py-2 px-4 border rounded-md w-full disabled:bg-gray-500"
+            type="submit"
+            disabled={isFormEmpty}
+          >
+            Submit
+          </button>
+        </form>
+        <h3 className="list-title py-4 text-xl font-bold">List</h3>
         <div className="wrapper-table overflow-x-auto">
           <table className="table-list border-collapse border border-gray-400">
             <thead>
