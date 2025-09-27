@@ -1,10 +1,13 @@
 "use client";
+import { FiCopy } from "react-icons/fi";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Input } from "./input";
 import { Label } from "./label";
-
+import { useNotificationMessage } from "../notification";
+import { Input, Table } from "antd";
+import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 export function PricePerDayList() {
+  const { showNotification, contextHolder } = useNotificationMessage();
   const [dataPrice, setDataPrice] = useState<any[]>([]);
   const [form, setForm] = useState({
     power: "",
@@ -13,6 +16,17 @@ export function PricePerDayList() {
     creative: "",
     spell: "",
     wisdom: "",
+    price_m: "",
+  });
+  // For displaying formatted values with commas
+  const [displayValue, setDisplayValue] = useState({
+    power: "",
+    stamina: "",
+    concentration: "",
+    creative: "",
+    spell: "",
+    wisdom: "",
+    price_m: "",
   });
   useEffect(() => {
     fetchPrices();
@@ -47,64 +61,186 @@ export function PricePerDayList() {
 
   const inp_label = [
     {
+      id: 1,
       name: "power",
+      color: "#dc0b0b",
     },
     {
+      id: 2,
       name: "stamina",
+      color: "#f99c04",
     },
     {
+      id: 3,
       name: "concentration",
+      color: "#02f42e",
     },
     {
+      id: 4,
       name: "creative",
+      color: "#08f1f1",
     },
     {
+      id: 5,
       name: "spell",
+      color: "#0342ef",
     },
     {
+      id: 6,
       name: "wisdom",
+      color: "#8b07f0",
     },
   ];
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log("name:", "value", e.target.name, e.target.value);
-    setForm({ ...form, [e.target.id]: e.target.value });
+  // สำหรับ antd Input
+  const handleChangeAntd = (value: string, name: string) => {
+    const rawValue = value.replace(/,/g, "");
+    if (!/^\d*$/.test(rawValue)) return;
+    setForm({ ...form, [name]: rawValue });
+    setDisplayValue({
+      ...displayValue,
+      [name]: rawValue ? Number(rawValue).toLocaleString() : "",
+    });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("submit", form);
-    setForm({
-      power: "",
-      stamina: "",
-      concentration: "",
-      creative: "",
-      spell: "",
-      wisdom: "",
-    });
+    // เตรียมข้อมูลสำหรับ insert
+    const insertData = {
+      power_meteorite_fragment: Number(form.power) || 0,
+      stamina_meteorite_fragment: Number(form.stamina) || 0,
+      concentration_meteorite_fragment: Number(form.concentration) || 0,
+      creative_meteorite_fragment: Number(form.creative) || 0,
+      spell_meteorite_fragment: Number(form.spell) || 0,
+      wisdom_meteorite_fragment: Number(form.wisdom) || 0,
+      price_m: Number(form.price_m) || 0,
+    };
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.from("item").insert([insertData]);
+      if (error) {
+        showNotification(
+          "error",
+          "เกิดข้อผิดพลาด",
+          error.message || "บันทึกไม่สำเร็จ"
+        );
+      } else {
+        showNotification(
+          "success",
+          "บันทึกสำเร็จ",
+          "ข้อมูลถูกบันทึกเรียบร้อยแล้ว"
+        );
+        setForm({
+          power: "",
+          stamina: "",
+          concentration: "",
+          creative: "",
+          spell: "",
+          wisdom: "",
+          price_m: "",
+        });
+        fetchPrices();
+      }
+    } catch (err: any) {
+      showNotification(
+        "error",
+        "เกิดข้อผิดพลาด",
+        err.message || "บันทึกไม่สำเร็จ"
+      );
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    const supabase = createClient();
+    const { error } = await supabase.from("item").delete().eq("id", id);
+    if (error) {
+      showNotification(
+        "error",
+        "ลบไม่สำเร็จ",
+        error.message || "เกิดข้อผิดพลาด"
+      );
+    } else {
+      showNotification("success", "ลบสำเร็จ", "ข้อมูลถูกลบเรียบร้อยแล้ว");
+      fetchPrices();
+    }
   };
 
   const isFormEmpty = Object.values(form).every((v) => v === "");
 
+  // Sync displayValue with form when form is reset or changed
+  useEffect(() => {
+    setDisplayValue({
+      power: form.power ? Number(form.power).toLocaleString() : "",
+      stamina: form.stamina ? Number(form.stamina).toLocaleString() : "",
+      concentration: form.concentration
+        ? Number(form.concentration).toLocaleString()
+        : "",
+      creative: form.creative ? Number(form.creative).toLocaleString() : "",
+      spell: form.spell ? Number(form.spell).toLocaleString() : "",
+      wisdom: form.wisdom ? Number(form.wisdom).toLocaleString() : "",
+      price_m: form.price_m ? Number(form.price_m).toLocaleString() : "",
+    });
+  }, [
+    form.power,
+    form.stamina,
+    form.concentration,
+    form.creative,
+    form.spell,
+    form.wisdom,
+    form.price_m,
+  ]);
+
   return (
     <>
+      {contextHolder}
       <div className="container-list">
         <form className="space-y-4" onSubmit={handleSubmit}>
           {inp_label.map((item) => (
-            <div className="flex items-center gap-2" key={item.name}>
-              <Label htmlFor={item.name} className="min-w-[250px]">
-                {item.name.charAt(0).toUpperCase() + item.name.slice(1)}{" "}
-                Meteorite Fragment
-              </Label>
+            <div className="flex items-center gap-2" key={item.id}>
+              {(() => {
+                const labelText = `${
+                  item.name.charAt(0).toUpperCase() + item.name.slice(1)
+                } Meteorite Fragment`;
+                return (
+                  <>
+                    <Label
+                      htmlFor={item.name}
+                      className="min-w-[250px] px-2 py-2 rounded text-white"
+                      style={{ backgroundColor: item.color }}
+                    >
+                      {labelText}
+                    </Label>
+                    <button
+                      type="button"
+                      className="ml-2 p-1 rounded hover:bg-gray-200 hover:text-black"
+                      title="Copy"
+                      onClick={() => navigator.clipboard.writeText(labelText)}
+                    >
+                      <FiCopy size={18} className="ic" />
+                    </button>
+                  </>
+                );
+              })()}
               <Input
-                id={item.name}
-                type="number"
+                value={displayValue[item.name]}
+                onChange={(e) => handleChangeAntd(e.target.value, item.name)}
+                inputMode="numeric"
+                type="text"
                 placeholder="กรอกราคาใหม่"
-                value={form[item.name]}
-                onChange={handleChange}
+                autoComplete="off"
+                className="text-black"
               />
             </div>
           ))}
+          <Input
+            value={displayValue["price_m"]}
+            onChange={(e) => handleChangeAntd(e.target.value, "price_m")}
+            inputMode="numeric"
+            type="text"
+            placeholder="กรอกราคา M"
+            autoComplete="off"
+            className="text-black mb-2"
+          />
           <button
             className="bg-blue-500 py-2 px-4 border rounded-md w-full disabled:bg-gray-500"
             type="submit"
@@ -114,83 +250,172 @@ export function PricePerDayList() {
           </button>
         </form>
         <h3 className="list-title py-4 text-xl font-bold">List</h3>
-        <div className="wrapper-table overflow-x-auto">
-          <table className="table-list border-collapse border border-gray-400">
-            <thead>
-              <tr className="text-center">
-                <th className="border border-gray-300 px-4 py-2">ID</th>
-                <th className="border border-gray-300 px-4 py-2">Time Stemp</th>
-                <th className="border border-gray-300 bg-[#dc0b0b] px-4 py-2">
-                  Power Meteorite Fragment
-                </th>
-                <th className="border border-gray-300 bg-[#f99c04]  px-4 py-2">
-                  Stamina Meteorite Fragment
-                </th>
-                <th className="border border-gray-300 bg-[#02f42e]  px-4 py-2">
-                  Concentration Meteorite Fragment
-                </th>
-                <th className="border border-gray-300 bg-[#08f1f1] px-4 py-2">
-                  Creative Meteorite Fragment
-                </th>
-                <th className="border border-gray-300 bg-[#0342ef] px-4 py-2">
-                  Spell Meteorite Fragment
-                </th>
-                <th className="border border-gray-300 bg-[#8b07f0] px-4 py-2">
-                  Wisdom Meteorite Fragment
-                </th>
-                <th className="border border-gray-300 px-4 py-2">Sumary</th>
-                <th className="border border-gray-300 px-4 py-2">
-                  Price M Rate
-                </th>
-                <th className="border border-gray-300 px-4 py-2" colSpan={2}>
-                  Action
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {dataPrice.map((item, idx) => (
-                <tr key={item.id ?? idx} className="text-center">
-                  <td className="border border-gray-300 px-4 py-2">
-                    {item.id}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2">
-                    {formatDate(item.created_at)}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2">
-                    {item.power_meteorite_fragment.toLocaleString()}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2">
-                    {item.stamina_meteorite_fragment.toLocaleString()}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2">
-                    {item.concentration_meteorite_fragment.toLocaleString()}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2">
-                    {item.creative_meteorite_fragment.toLocaleString()}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2">
-                    {item.spell_meteorite_fragment.toLocaleString()}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2">
-                    {item.wisdom_meteorite_fragment.toLocaleString()}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2">
-                    {item.sumary_price.toLocaleString()}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2">
-                    {item.price_m}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2">
-                    <a href="">Edit</a>
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2">
-                    <a href="">Delete</a>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <Table
+          dataSource={dataPrice.map((item, idx) => ({
+            key: item.id ?? idx,
+            id: item.id,
+            created_at: formatDate(item.created_at),
+            power: item.power_meteorite_fragment.toLocaleString(),
+            stamina: item.stamina_meteorite_fragment.toLocaleString(),
+            concentration:
+              item.concentration_meteorite_fragment.toLocaleString(),
+            creative: item.creative_meteorite_fragment.toLocaleString(),
+            spell: item.spell_meteorite_fragment.toLocaleString(),
+            wisdom: item.wisdom_meteorite_fragment.toLocaleString(),
+            sumary_price: item.sumary_price.toLocaleString(),
+            price_m: item.price_m.toLocaleString(),
+          }))}
+          columns={[
+            { title: "ID", dataIndex: "id", key: "id", align: "center" },
+            {
+              title: "Time Stemp",
+              dataIndex: "created_at",
+              key: "created_at",
+              align: "center",
+            },
+            {
+              title: (
+                <span
+                  style={{
+                    color: "#dc0b0b",
+                    display: "block",
+                  }}
+                >
+                  Power
+                  <br /> Meteorite Fragment
+                </span>
+              ),
+              dataIndex: "power",
+              key: "power",
+              align: "center",
+            },
+            {
+              title: (
+                <span
+                  style={{
+                    color: "#f99c04",
+                    display: "block",
+                  }}
+                >
+                  Stamina
+                  <br /> Meteorite Fragment
+                </span>
+              ),
+              dataIndex: "stamina",
+              key: "stamina",
+              align: "center",
+            },
+            {
+              title: (
+                <span
+                  style={{
+                    color: "#02f42e",
+                    display: "block",
+                  }}
+                >
+                  Concentration
+                  <br /> Meteorite Fragment
+                </span>
+              ),
+              dataIndex: "concentration",
+              key: "concentration",
+              align: "center",
+            },
+            {
+              title: (
+                <span
+                  style={{
+                    color: "#08f1f1",
+                    display: "block",
+                  }}
+                >
+                  Creative
+                  <br /> Meteorite Fragment
+                </span>
+              ),
+              dataIndex: "creative",
+              key: "creative",
+              align: "center",
+            },
+            {
+              title: (
+                <span
+                  style={{
+                    color: "#0342ef",
+                    display: "block",
+                  }}
+                >
+                  Spell
+                  <br /> Meteorite Fragment
+                </span>
+              ),
+              dataIndex: "spell",
+              key: "spell",
+              align: "center",
+            },
+            {
+              title: (
+                <span
+                  style={{
+                    color: "#8b07f0",
+                    display: "block",
+                  }}
+                >
+                  Wisdom
+                  <br /> Meteorite Fragment
+                </span>
+              ),
+              dataIndex: "wisdom",
+              key: "wisdom",
+              align: "center",
+            },
+            {
+              title: "Sumary",
+              dataIndex: "sumary_price",
+              key: "sumary_price",
+              align: "center",
+            },
+            {
+              title: "M",
+              dataIndex: "price_m",
+              key: "price_m",
+              align: "center",
+            },
+            {
+              title: "Action",
+              key: "action",
+              align: "center",
+              render: (_, record) => (
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <EditOutlined
+                    style={{
+                      color: "#1677ff",
+                      fontSize: 18,
+                      marginRight: 12,
+                      cursor: "pointer",
+                    }}
+                  />
+                  <DeleteOutlined
+                    style={{
+                      color: "#dc2626",
+                      fontSize: 18,
+                      cursor: "pointer",
+                    }}
+                    onClick={() => handleDelete(record.id)}
+                  />
+                </div>
+              ),
+            },
+          ]}
+          pagination={false}
+          style={{ tableLayout: "fixed", width: "100%" }}
+        />
       </div>
     </>
   );
