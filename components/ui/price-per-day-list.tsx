@@ -7,7 +7,6 @@ import { useNotificationMessage } from "../notification";
 import { Input } from "antd";
 import PriceListTable from "./PriceListTable";
 import AverageTable from "./AverageTable";
-import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 export function PricePerDayList() {
   const { showNotification, contextHolder } = useNotificationMessage();
   const [dataPrice, setDataPrice] = useState<any[]>([]);
