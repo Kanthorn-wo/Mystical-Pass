@@ -13,8 +13,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
 
 export function LoginForm({
   className,
@@ -25,6 +25,20 @@ export function LoginForm({
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
+
+  // ถ้า login แล้วและอยู่ที่ /login ให้ redirect ไป /protected
+  // (เช็ค session ฝั่ง client)
+  useEffect(() => {
+    const checkSession = async () => {
+      const supabase = createClient();
+      const { data } = await supabase.auth.getSession();
+      if (data.session && pathname === "/auth/login") {
+        router.replace("/protected");
+      }
+    };
+    checkSession();
+  }, [router, pathname]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,7 +53,8 @@ export function LoginForm({
       });
       if (error) throw error;
       // Update this route to redirect to an authenticated route. The user already has an active session.
-      router.push("/protected");
+      // ใช้ window.location.replace เพื่อให้ session sync กับ middleware
+      window.location.replace("/protected");
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");
     } finally {
